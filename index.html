@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymCounter - Controlo Rápido de Inscritos</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Disabilita seleção acidental de texto ao clicar nos botões + / - rapidamente */
+        .no-select {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen pb-16 antialiased no-select">
+
+    <!-- Top Navigation / Header -->
+    <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-xl shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-plus-minus"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg leading-none text-white tracking-wide">GymCounter</h1>
+                    <span class="text-xs text-slate-400">Controlo Numérico Minimalista</span>
+                </div>
+            </div>
+
+            <button onclick="resetCounters()" class="text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-500/30 bg-slate-950 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span class="hidden sm:inline">Repor Contadores</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 pt-6 space-y-8">
+
+        <!-- 1. RESUMO GLOBAL / TOTALIZADORES -->
+        <section class="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-800/80 pb-6">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Contagem Geral</span>
+                    <h2 class="text-slate-300 font-medium text-sm">Total de Pessoas Inscritas no Ginásio</h2>
+                    <p id="total-global" class="text-6xl sm:text-7xl font-black text-white tracking-tight mt-1">0</p>
+                </div>
+
+                <!-- Métodos e Serviços Totais -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full md:w-auto">
+                    <!-- Total Dinheiro -->
+                    <div class="bg-slate-950/80 border border-slate-800/80 p-3.5 rounded-2xl">
+                        <div class="flex items-center gap-2 text-emerald-400 text-xs font-semibold mb-1">
+                            <i class="fa-solid fa-money-bill-wave"></i> Dinheiro
+                        </div>
+                        <span id="total-dinheiro" class="text-2xl font-bold text-white">0</span>
+                    </div>
+
+                    <!-- Total Multibanco -->
+                    <div class="bg-slate-950/80 border border-slate-800/80 p-3.5 rounded-2xl">
+                        <div class="flex items-center gap-2 text-blue-400 text-xs font-semibold mb-1">
+                            <i class="fa-solid fa-credit-card"></i> Multibanco
+                        </div>
+                        <span id="total-multibanco" class="text-2xl font-bold text-white">0</span>
+                    </div>
+
+                    <!-- Total PT -->
+                    <div class="bg-slate-950/80 border border-slate-800/80 p-3.5 rounded-2xl">
+                        <div class="flex items-center gap-2 text-indigo-400 text-xs font-semibold mb-1">
+                            <i class="fa-solid fa-dumbbell"></i> PT
+                        </div>
+                        <span id="total-pt" class="text-2xl font-bold text-white">0</span>
+                    </div>
+
+                    <!-- Total Nutrição -->
+                    <div class="bg-slate-950/80 border border-slate-800/80 p-3.5 rounded-2xl">
+                        <div class="flex items-center gap-2 text-amber-400 text-xs font-semibold mb-1">
+                            <i class="fa-solid fa-apple-whole"></i> Nutrição
+                        </div>
+                        <span id="total-nutricao" class="text-2xl font-bold text-white">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Totais por Plano -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-medium">
+                <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/60 flex justify-between items-center">
+                    <span class="text-slate-400">Total Plano Normal:</span>
+                    <span id="subtotal-normal" class="text-sm font-bold text-white">0</span>
+                </div>
+                <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/60 flex justify-between items-center">
+                    <span class="text-slate-400">Total Normal (6 M):</span>
+                    <span id="subtotal-6m" class="text-sm font-bold text-white">0</span>
+                </div>
+                <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/60 flex justify-between items-center">
+                    <span class="text-slate-400">Total Normal (12 M):</span>
+                    <span id="subtotal-12m" class="text-sm font-bold text-white">0</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. CONTADORES DIRECTOS POR PLANO -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- CARD 1: PLANO NORMAL -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-5 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Mensal</span>
+                            <h3 class="text-lg font-bold text-white">Plano Normal</h3>
+                        </div>
+                        <span id="badge-normal" class="text-xl font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-xl">0</span>
+                    </div>
+
+                    <!-- Opções de Contagem -->
+                    <div class="space-y-4 mt-4">
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Forma de Pagamento</p>
+
+                        <!-- Dinheiro -->
+                        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                                <i class="fa-solid fa-money-bill-wave text-emerald-400"></i> Dinheiro
+                            </span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="changeValue('normal', 'dinheiro', -1)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg transition flex items-center justify-center">-</button>
+                                <span id="val-normal-dinheiro" class="w-8 text-center font-bold text-base text-white">0</span>
+                                <button onclick="changeValue('normal', 'dinheiro', 1)" class="w-10 h-10 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-bold text-lg transition flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Multibanco -->
+                        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                                <i class="fa-solid fa-credit-card text-blue-400"></i> Multibanco
+                            </span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="changeValue('normal', 'multibanco', -1)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg transition flex items-center justify-center">-</button>
+                                <span id="val-normal-multibanco" class="w-8 text-center font-bold text-base text-white">0</span>
+                                <button onclick="changeValue('normal', 'multibanco', 1)" class="w-10 h-10 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-bold text-lg transition flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider pt-2">Serviços Adicionais</p>
+
+                        <!-- PT -->
+                        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                                <i class="fa-solid fa-dumbbell text-indigo-400"></i> PT
+                            </span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="changeValue('normal', 'pt', -1)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg transition flex items-center justify-center">-</button>
+                                <span id="val-normal-pt" class="w-8 text-center font-bold text-base text-white">0</span>
+                                <button onclick="changeValue('normal', 'pt', 1)" class="w-10 h-10 rounded-xl bg-indigo-500 hover:bg-indigo-400 active:scale-95 text-white font-bold text-lg transition flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Nutrição -->
+                        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                                <i class="fa-solid fa-apple-whole text-amber-400"></i> Nutrição
+                            </span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="changeValue('normal', 'nutricao', -1)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg transition flex items-center justify-center">-</button>
+                                <span id="val-normal-nutricao" class="w-8 text-center font-bold text-base text-white">0</span>
+                                <button onclick="changeValue('normal', 'nutricao', 1)" class="w-10 h-10 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold text-lg transition flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 2: PLANO NORMAL - 6 MESES -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-5 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Semestral</span>
+                            <h3 class="text-lg font-bold text-white">Plano Normal - 6 meses</h3>
+                        </div>
+                        <span id="badge-6m" class="text-xl font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-xl">0</span>
+                    </div>
+
+                    <!-- Opções de Contagem -->
+                    <div class="space-y-4 mt-4">
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Forma de Pagamento</p>
+
+                        <!-- Dinheiro -->
+                        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                                <i class="fa-solid fa-money-bill-wave text-emerald-400"></i> Dinheiro
+                            </span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="changeValue('m6', 'dinheiro', -1)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg transition flex items-center justify-center">-</button>
+                                <span id="val-m6-dinheiro" class="w-8 text-center font-bold text-base text-white">0</span>
+                                <button onclick="changeValue('m6', 'dinheiro', 1)" class="w-10 h-10 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-bold text-lg transition flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Multibanco -->
+                        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                                <i class="fa-solid fa-credit-card text-blue-400"></i> Multibanco
+                            </span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="changeValue('m6', 'multibanco', -1)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg transition flex items-center justify-center">-</button>
+                                <span id="val-m6-multibanco" class="w-8 text-center font-bold text-base text-white">0</span>
+                                <button onclick="changeValue('m6', 'multibanco', 1)" class="w-10 h-10 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-bold text-lg transition flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider pt-2">Serviços Adicionais</p>
+
+                        <!-- PT -->
+                        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                                <i class="fa-solid fa-dumbbell text-indigo-400"></i> PT
+                            </span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="changeValue('m6', 'pt', -1)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg transition flex items-center justify-center">-</button>
+                                <span id="val-m6-pt" class="w-8 text-center font-bold text-base text-white">0</span>
+                                <button onclick="changeValue('m6', 'pt', 1)" class="w-10 h-10 rounded-xl bg-indigo-500 hover:bg-indigo-400 active:scale-95 text-white font-bold text-lg transition flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Nutrição -->
+                        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                                <i class="fa-solid fa-apple-whole text-amber-400"></i> Nutrição
+                            </span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="changeValue('m6', 'nutricao', -1)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg transition flex items-center justify-center">-</button>
+                                <span id="val-m6-nutricao" class="w-8 text-center font-bold text-base text-white">0</span>
+                                <button onclick="changeValue('m6', 'nutricao', 1)" class="w-10 h-10 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold text-lg transition flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 3: PLANO NORMAL - 12 MESES -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-5 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Anual</span>
+                            <h3 class="text-lg font-bold text-white">Plano Normal - 12 meses</h3>
+                        </div>
+                        <span id="badge-12m" class="text-xl font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-xl">0</span>
+                    </div>
+
+                    <!-- Opções de Contagem -->
+                    <div class="space-y-4 mt-4">
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Forma de Pagamento</p>
+
+                        <!-- Dinheiro -->
+                        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                                <i class="fa-solid fa-money-bill-wave text-emerald-400"></i> Dinheiro
+                            </span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="changeValue('m12', 'dinheiro', -1)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg transition flex items-center justify-center">-</button>
+                                <span id="val-m12-dinheiro" class="w-8 text-center font-bold text-base text-white">0</span>
+                                <button onclick="changeValue('m12', 'dinheiro', 1)" class="w-10 h-10 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-bold text-lg transition flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Multibanco -->
+                        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                                <i class="fa-solid fa-credit-card text-blue-400"></i> Multibanco
+                            </span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="changeValue('m12', 'multibanco', -1)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg transition flex items-center justify-center">-</button>
+                                <span id="val-m12-multibanco" class="w-8 text-center font-bold text-base text-white">0</span>
+                                <button onclick="changeValue('m12', 'multibanco', 1)" class="w-10 h-10 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-bold text-lg transition flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider pt-2">Serviços Adicionais</p>
+
+                        <!-- PT -->
+                        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                                <i class="fa-solid fa-dumbbell text-indigo-400"></i> PT
+                            </span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="changeValue('m12', 'pt', -1)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg transition flex items-center justify-center">-</button>
+                                <span id="val-m12-pt" class="w-8 text-center font-bold text-base text-white">0</span>
+                                <button onclick="changeValue('m12', 'pt', 1)" class="w-10 h-10 rounded-xl bg-indigo-500 hover:bg-indigo-400 active:scale-95 text-white font-bold text-lg transition flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Nutrição -->
+                        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                                <i class="fa-solid fa-apple-whole text-amber-400"></i> Nutrição
+                            </span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="changeValue('m12', 'nutricao', -1)" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg transition flex items-center justify-center">-</button>
+                                <span id="val-m12-nutricao" class="w-8 text-center font-bold text-base text-white">0</span>
+                                <button onclick="changeValue('m12', 'nutricao', 1)" class="w-10 h-10 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold text-lg transition flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Data Structure for Counters
+        const defaultState = {
+            normal: { dinheiro: 0, multibanco: 0, pt: 0, nutricao: 0 },
+            m6:     { dinheiro: 0, multibanco: 0, pt: 0, nutricao: 0 },
+            m12:    { dinheiro: 0, multibanco: 0, pt: 0, nutricao: 0 }
+        };
+
+        let data = JSON.parse(JSON.stringify(defaultState));
+
+        // Load on start
+        window.onload = function() {
+            const saved = localStorage.getItem('gym_counts_ultra_simple');
+            if (saved) {
+                try {
+                    data = JSON.parse(saved);
+                } catch(e) {
+                    data = JSON.parse(JSON.stringify(defaultState));
+                }
+            }
+            updateUI();
+        };
+
+        // Save State
+        function saveState() {
+            localStorage.setItem('gym_counts_ultra_simple', JSON.stringify(data));
+        }
+
+        // Change Value (+1 or -1)
+        function changeValue(plan, type, delta) {
+            if (!data[plan]) return;
+            
+            data[plan][type] += delta;
+            
+            // Prevent negative numbers
+            if (data[plan][type] < 0) {
+                data[plan][type] = 0;
+            }
+
+            saveState();
+            updateUI();
+        }
+
+        // Reset All
+        function resetCounters() {
+            if (confirm('Tem a certeza que deseja repor todos os contadores a ZERO?')) {
+                data = JSON.parse(JSON.stringify(defaultState));
+                saveState();
+                updateUI();
+            }
+        }
+
+        // Refresh UI Elements
+        function updateUI() {
+            const plans = ['normal', 'm6', 'm12'];
+            
+            // Subtotals per plan
+            let totalNormal = data.normal.dinheiro + data.normal.multibanco;
+            let totalM6 = data.m6.dinheiro + data.m6.multibanco;
+            let totalM12 = data.m12.dinheiro + data.m12.multibanco;
+
+            // Update plan card elements
+            plans.forEach(p => {
+                document.getElementById(`val-${p}-dinheiro`).innerText = data[p].dinheiro;
+                document.getElementById(`val-${p}-multibanco`).innerText = data[p].multibanco;
+                document.getElementById(`val-${p}-pt`).innerText = data[p].pt;
+                document.getElementById(`val-${p}-nutricao`).innerText = data[p].nutricao;
+            });
+
+            // Update Plan Badges (Total people in plan = Dinheiro + Multibanco)
+            document.getElementById('badge-normal').innerText = totalNormal;
+            document.getElementById('badge-6m').innerText = totalM6;
+            document.getElementById('badge-12m').innerText = totalM12;
+
+            document.getElementById('subtotal-normal').innerText = totalNormal;
+            document.getElementById('subtotal-6m').innerText = totalM6;
+            document.getElementById('subtotal-12m').innerText = totalM12;
+
+            // Global Metrics Calculations
+            const totalDinheiro = data.normal.dinheiro + data.m6.dinheiro + data.m12.dinheiro;
+            const totalMultibanco = data.normal.multibanco + data.m6.multibanco + data.m12.multibanco;
+            const totalPT = data.normal.pt + data.m6.pt + data.m12.pt;
+            const totalNutricao = data.normal.nutricao + data.m6.nutricao + data.m12.nutricao;
+
+            const totalGlobal = totalDinheiro + totalMultibanco;
+
+            // Set Global UI text
+            document.getElementById('total-global').innerText = totalGlobal;
+            document.getElementById('total-dinheiro').innerText = totalDinheiro;
+            document.getElementById('total-multibanco').innerText = totalMultibanco;
+            document.getElementById('total-pt').innerText = totalPT;
+            document.getElementById('total-nutricao').innerText = totalNutricao;
+        }
+    </script>
+</body>
+</html>
